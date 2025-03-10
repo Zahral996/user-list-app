@@ -38,6 +38,8 @@ const UserList = () => {
     <div className='py-[30px]'>
 
       <TextField label="Search users" variant="outlined" className="w-full" fullWidth value={searchQuery} onChange={handleSearch} />
+      <h3 className='text-3xl font-semibold pt-4 pb-1'>User's List</h3>
+      <p className='pb-4'>Select your favorite people from the list below by clicking the heart icon. </p>
       <List className='rounded-md shadow-sm border border-gray-200'>
         {filteredUsers?.map((user) => (
             <ListItem key={user.id} className={`odd:bg-gray-50 even:bg-white`}>

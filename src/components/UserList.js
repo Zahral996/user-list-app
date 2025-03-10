@@ -35,12 +35,12 @@ const UserList = () => {
   );
 
   return (
-    <div className='pt-[200px]'>
+    <div className='py-[30px]'>
 
-      <TextField label="Search users" variant="outlined" className="mb-8 w-full max-w-md mx-auto" fullWidth value={searchQuery} onChange={handleSearch} style={{ margin: '30px', width: "400px" }}/>
-      <List>
+      <TextField label="Search users" variant="outlined" className="w-full" fullWidth value={searchQuery} onChange={handleSearch} />
+      <List className='rounded-md shadow-sm border border-gray-200'>
         {filteredUsers?.map((user) => (
-            <ListItem key={user.id}>
+            <ListItem key={user.id} className={`odd:bg-gray-50 even:bg-white`}>
             <IconButton onClick={() => handleFavorite(user.id)}>
               {favorites.includes(user.id) ? (<Favorite color="error" />) : (<FavoriteBorder />)}
             </IconButton>

@@ -33,8 +33,7 @@ const UserList = () => {
       </div>
     );
 
-  if (isError) return
-   <div>Error loading users!</div>;
+  if (isError) return <div>Error loading users!</div>;
 
   const filteredUsers = users?.filter((user) =>
     user.name.toLowerCase().includes(searchQuery.toLowerCase())

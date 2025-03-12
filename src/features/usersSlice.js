@@ -18,11 +18,15 @@ const usersSlice = createSlice({
       state.favorites = state.favorites.filter((id) => id !== action.payload);
     },
 
+    deleteUser: (state, action) => {
+      state.users = state.users.filter((user) => user.id !== action.payload);
+    },
+
     setSearchQuery: (state, action) => {
       state.searchQuery = action.payload;
     },
   },
 });
 
-export const { addToFavorites, removeFromFavorites, setSearchQuery } = usersSlice.actions;
+export const { addToFavorites, removeFromFavorites, setSearchQuery,  deleteUser } = usersSlice.actions;
 export default usersSlice.reducer;

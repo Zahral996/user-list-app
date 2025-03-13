@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useGetUsersQuery, useGetFavoritesQuery, useDeleteUserMutation } from '../services/api';
 import { Search, Favorite, FavoriteBorder, Refresh, Remove } from '@mui/icons-material';
-import { IconButton, InputAdornment, Pagination, Button } from '@mui/material';
+import { IconButton, InputAdornment, Pagination, Button, Modal, Box, Typography } from '@mui/material';
 import { List, ListItem, ListItemText, ListItemAvatar, Avatar, TextField, CircularProgress } from '@mui/material';
-import { addToFavorites, removeFromFavorites, setSearchQuery, deleteUser } from '../features/usersSlice';
+import { addToFavorites, removeFromFavorites, setSearchQuery, deleteUser, resetList } from '../features/usersSlice';
 
 const UserList = () => {
   const { data: users, isLoading, isError } = useGetUsersQuery();
@@ -17,6 +17,7 @@ const UserList = () => {
   const [usersPerPage] = useState(12);
   const [visibleUsers, setVisibleUsers] = useState([]);
   const [backupUsers, setBackupUsers] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     if (users) {
@@ -25,14 +26,10 @@ const UserList = () => {
     }
   }, [users]);
 
- 
   useEffect(() => {
     if (favoritesData) {
-      console.log("Favorites data fetched:", favoritesData); 
       const favoriteIds = favoritesData.map((fav) => fav.id);
-      dispatch(addToFavorites(favoriteIds)); 
-    } else {
-      console.log("No favorites data found.");
+      dispatch(addToFavorites(favoriteIds));
     }
   }, [favoritesData, dispatch]);
 
@@ -45,59 +42,52 @@ const UserList = () => {
     try {
       if (favorites.includes(user.id)) {
         await fetch(`/api/favorites/${user.id}`, { method: 'DELETE' });
-        dispatch(removeFromFavorites(user.id));
+        dispatch(removeFromFavorites(user.id)); 
       } else {
-
         await fetch(`/api/favorites`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id: user.id, name: user.name, avatar: user.avatar }),
         });
-        dispatch(addToFavorites(user.id));
+        dispatch(addToFavorites(user.id)); 
       }
-
-
-      await refetchFavorites();
+      await refetchFavorites(); 
     } catch (error) {
       console.error('Failed to update favorites:', error);
     }
   };
-
 
   const handleDelete = async (userId) => {
     try {
       await deleteUserApi(userId).unwrap();
       setVisibleUsers((prev) => prev.filter((user) => user.id !== userId));
       dispatch(deleteUser(userId));
+      if (favorites.includes(userId)) {
+        dispatch(removeFromFavorites(userId));
+      }
     } catch (error) {
       console.error('Failed to delete user:', error);
     }
   };
 
-
   const handleReset = () => {
     setVisibleUsers(backupUsers);
+    dispatch(resetList());
     setCurrentPage(1);
   };
 
-  const handleShowFavorites = async () => {
-    try {
-      if (favoritesData) {
-        console.log("Favorites Data when 'Favorite List' is clicked:", favoritesData);  
-        setVisibleUsers(favoritesData);  
-        setCurrentPage(1);
-      } else {
-        console.log('No favorites found!');
-      }
-    } catch (error) {
-      console.error('Failed to load favorites:', error);
-    }
+  const handleShowFavorites = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
   };
 
   if (isLoading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <CircularProgress />
+        <CircularProgress/>
       </div>
     );
   }
@@ -156,13 +146,11 @@ const UserList = () => {
             </ListItemAvatar>
             <ListItemText primary={user.name} />
 
-            <IconButton onClick={() => handleFavorite(user)}>
-              {favorites.includes(user.id) ? (
-                <Favorite color="error" />
-              ) : (
-                <FavoriteBorder />
-              )}
-            </IconButton>
+              <IconButton onClick={() => handleFavorite(user)}>
+                {favorites.includes(user.id) ? (
+                  <Favorite color="error" />) : (<FavoriteBorder /> 
+                )}
+              </IconButton>
 
             <IconButton onClick={() => handleDelete(user.id)}>
               <Remove color="primary" />
@@ -174,6 +162,24 @@ const UserList = () => {
       <div className="flex justify-center mt-4">
         <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} color="primary" />
       </div>
+
+      <Modal open={isModalOpen} onClose={handleCloseModal}>
+        <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 400, bgcolor: 'background.paper', boxShadow: 24, p: 4 }}>
+          <Typography variant="h6" component="h2">
+            Favorite Users
+          </Typography>
+          <List>
+            {visibleUsers?.filter((user) => favorites.includes(user.id)).map((user) => (
+                <ListItem key={user.id}>
+                  <ListItemAvatar>
+                    <Avatar alt={user.name} src={user.avatar}/>
+                  </ListItemAvatar>
+                  <ListItemText primary={user.name}/>
+                </ListItem>
+              ))}
+          </List>
+        </Box>
+      </Modal>
     </div>
   );
 };
